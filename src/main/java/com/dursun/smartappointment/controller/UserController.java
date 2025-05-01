@@ -24,6 +24,6 @@ public class UserController {
         User user = userRepository.findByEmail(userDetails.getUsername())
                 .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı"));
 
-        return userMapper.mapFrom(user);
+        return userMapper.mapToDto(user);
     }
 }

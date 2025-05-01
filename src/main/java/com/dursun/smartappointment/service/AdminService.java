@@ -16,6 +16,6 @@ public class AdminService {
     private final UserMapper userMapper;
 
     public List<UserDTO> getAllUsers() {
-        return userRepository.findAll().stream().map(userMapper::mapFrom).toList();
+        return userRepository.findAll().stream().map(userMapper::mapToDto).toList();
     }
 }
