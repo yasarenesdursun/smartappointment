@@ -16,17 +16,9 @@ public class OpenApiConfig {
         final String securitySchemeName = "bearer";
 
         return new OpenAPI()
-                .info(new Info()
-                        .title("SmartAppointment API")
-                        .version("1.0")
-                        .description("Appointment Management System"))
+                .info(new Info().title("SmartAppointment API").version("1.0").description("Appointment Management System"))
                 .addSecurityItem(new SecurityRequirement().addList(securitySchemeName))
-                .components(new Components()
-                        .addSecuritySchemes(securitySchemeName,
-                                new SecurityScheme()
-                                        .name(securitySchemeName)
-                                        .type(SecurityScheme.Type.HTTP)
-                                        .scheme("bearer")
-                                        .bearerFormat("JWT")));
+                .components(new Components().addSecuritySchemes(securitySchemeName,
+                        new SecurityScheme().name(securitySchemeName).type(SecurityScheme.Type.HTTP).scheme("bearer").bearerFormat("JWT")));
     }
 }
