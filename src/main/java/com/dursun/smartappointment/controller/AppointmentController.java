@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -46,8 +47,13 @@ public class AppointmentController {
         return appointmentService.getAllAppointments();
     }
 
-    @DeleteMapping
+    @DeleteMapping("/{id}")
     public void delete(@PathVariable Long id) {
         appointmentService.delete(id);
+    }
+
+    @GetMapping(params = "date")
+    public List<AppointmentDto> getAppointmentsByDate(@RequestParam("date") LocalDate date) {
+        return appointmentService.getAppointmentsByDate(date);
     }
 }

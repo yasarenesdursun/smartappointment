@@ -12,6 +12,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 
 @Service
@@ -23,11 +26,17 @@ public class AppointmentService {
     private final UserRepository userRepository;
 
     private User getCurrentUser() {
-        String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        return userRepository.findByEmail(email).orElseThrow();
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        return userRepository.findByUsername(username).orElseThrow(() -> new RuntimeException("User not found with name : " + username));
     }
 
     public AppointmentDto create(AppointmentRequest request){
+        List<Appointment> conflicts = appointmentRepository.findConflictingAppointments(request.getStartTime(), request.getEndTime());
+
+        if(!conflicts.isEmpty()){
+            throw new RuntimeException("There is already an appointment in this time range.");
+        }
+
         User user = getCurrentUser();
 
         Appointment appointment = Appointment.builder()
@@ -66,5 +75,15 @@ public class AppointmentService {
         }
 
         appointmentRepository.delete(appointment);
+    }
+
+    public List<AppointmentDto> getAppointmentsByDate(LocalDate date) {
+        LocalDateTime startOfDay = date.atStartOfDay();
+        LocalDateTime endOfDay = date.atTime(LocalTime.MAX);
+
+        return appointmentRepository.findByStartTimeBetween(startOfDay, endOfDay)
+                .stream()
+                .map(appointmentMapper::mapToDto)
+                .toList();
     }
 }
