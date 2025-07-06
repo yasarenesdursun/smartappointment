@@ -12,10 +12,12 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -55,5 +57,12 @@ public class AppointmentController {
     @GetMapping(params = "date")
     public List<AppointmentDto> getAppointmentsByDate(@RequestParam("date") LocalDate date) {
         return appointmentService.getAppointmentsByDate(date);
+    }
+
+    @GetMapping("/between")
+    public List<AppointmentDto> getAppointmentsBetween (
+            @RequestParam("start") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
+            @RequestParam("end") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end){
+        return appointmentService.getAppointmentsBetween(start, end);
     }
 }

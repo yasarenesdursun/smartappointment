@@ -1,5 +1,6 @@
 package com.dursun.smartappointment.service;
 
+import com.dursun.smartappointment.config.AppointmentProperties;
 import com.dursun.smartappointment.entity.Appointment;
 import com.dursun.smartappointment.entity.User;
 import com.dursun.smartappointment.enums.Role;
@@ -12,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -24,16 +26,21 @@ public class AppointmentService {
     private final AppointmentRepository appointmentRepository;
     private final AppointmentMapper appointmentMapper;
     private final UserRepository userRepository;
+    private final AppointmentProperties properties;
 
     private User getCurrentUser() {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         return userRepository.findByUsername(username).orElseThrow(() -> new RuntimeException("User not found with name : " + username));
     }
 
-    public AppointmentDto create(AppointmentRequest request){
+    public AppointmentDto create(AppointmentRequest request) {
+        if (!isSlotValid(request.getStartTime(), request.getEndTime())) {
+            throw new RuntimeException(String.format("Appointment times can be %s minutes intervals", properties.getSlotDurationMinutes()));
+        }
+
         List<Appointment> conflicts = appointmentRepository.findConflictingAppointments(request.getStartTime(), request.getEndTime());
 
-        if(!conflicts.isEmpty()){
+        if (!conflicts.isEmpty()) {
             throw new RuntimeException("There is already an appointment in this time range.");
         }
 
@@ -85,5 +92,17 @@ public class AppointmentService {
                 .stream()
                 .map(appointmentMapper::mapToDto)
                 .toList();
+    }
+
+    public List<AppointmentDto> getAppointmentsBetween(LocalDateTime start, LocalDateTime end) {
+        return appointmentRepository.findByStartTimeBetween(start, end)
+                .stream()
+                .map(appointmentMapper::mapToDto)
+                .toList();
+    }
+
+    public boolean isSlotValid(LocalDateTime startTime, LocalDateTime endTime) {
+        Duration duration = Duration.between(startTime, endTime);
+        return duration.toMinutes() == properties.getSlotDurationMinutes();
     }
 }
